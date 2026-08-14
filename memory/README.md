@@ -1,0 +1,103 @@
+# Memory — XKey
+
+**Cập nhật lần cuối:** 2026-08-14 16:40
+
+---
+
+## Ghi chú thiết kế (Design Notes)
+
+### 2026-08-14 — Rebuild 20260813 Stable Build
+- Bản 20260813 (Macro XKeyIM + cursor fix + version linking) bị mất do `git reset --hard HEAD` — chưa từng được commit.
+- Re-implement toàn bộ từ documentation 20260813, build & deploy thành công, `CFBundleVersion = 20260813`.
+- Chi tiết: xem [`20260814_1640-Rebuild_20260813_Stable_Build.md`](20260814_1640-Rebuild_20260813_Stable_Build.md)
+
+### 2026-08-14 — Restore Stable Build v1.2.24-20260721
+- Xóa hẳn các thay đổi chưa commit vì gây regression.
+- Checkout về tag `v1.2.24-20260721`, build & deploy thành công.
+- Chi tiết: xem [`20260814_1529-Restore_Stable_Build.md`](20260814_1529-Restore_Stable_Build.md)
+
+### 2026-08-14 — Deploy Fix: Version Cache Issue
+- Menu hiển thị `20260721` vì `cp -R` không xóa app cũ.
+- Fix: `rm -rf` trước khi copy, verify `CFBundleVersion`.
+- Skill `xkey-build-deploy` đã cập nhật.
+- Chi tiết: xem [`20260814_1510-Deploy_Fix_Version_Cache.md`](20260814_1510-Deploy_Fix_Version_Cache.md)
+
+### 2026-08-14 — Version Bump & Skill xkey-build-deploy
+- Bump `CURRENT_PROJECT_VERSION` lên `20260814`.
+- Build & deploy thành công.
+- Tạo skill `xkey-build-deploy` để tự động hóa build/deploy sau này.
+- Chi tiết: xem [`20260814_1459-Version_Bump_and_Skill_Created.md`](20260814_1459-Version_Bump_and_Skill_Created.md)
+
+### 2026-08-14 — Punctuation Context Fix Deployed
+- Triển khai fix: bỏ qua cursor-move detection trong 50ms sau dấu câu/symbol.
+- Build & deploy thành công, cần re-select input source.
+- Chi tiết: xem [`20260814_1455-Punctuation_Context_Fix_Deployed.md`](20260814_1455-Punctuation_Context_Fix_Deployed.md)
+
+### 2026-08-14 — Punctuation Context Bug
+- Sau dấu `,` `.`, từ tiếp theo hay lỗi vì `cursorMovedSinceReset` bị bật bởi event cursor từ editor.
+- Đề xuất: reset flag trên phím printable đầu tiên sau punctuation, tăng tolerance cursor detection.
+- Chi tiết: xem [`20260814_1450-Punctuation_Context_Bug_Analysis.md`](20260814_1450-Punctuation_Context_Bug_Analysis.md)
+
+### 2026-08-14 — Timestamp Convention cho ngày 14/08
+- Tất cả file log dùng định dạng `YYYYMMDD_HHMM-<Nội dung>.md`.
+- Mỗi file mới phải cập nhật ngay vào README.md của thư mục.
+- Chi tiết: xem [`20260814_1429-Timestamp_Convention_1408.md`](20260814_1429-Timestamp_Convention_1408.md)
+
+### 2026-08-14 — Log Analysis 14:15: 4 Typing Issues
+- `skipNextCursorCheck` đang skip quá nhiều trường hợp (actual=1 expected=142).
+- Macro log leak plaintext user content.
+- `handleVowelKey: no pattern matched` với nguyên âm đơn lẻ.
+- English detection vẫn aggressive, `tempDisableKey` kéo dài sang từ mới.
+- Chi tiết: xem [`20260814_1418-Log_Analysis_1415_Typing_Issues.md`](20260814_1418-Log_Analysis_1415_Typing_Issues.md)
+- Build mới đã deploy (XKeyIM Debug 2026-08-14).
+
+### 2026-08-14 — XKeyIM Debug Review: 6 Optimization Points
+- Tổng hợp từ git diff, log structure, và các file markdown trong ngày.
+- 6 điểm chính: cursor false-positive, macro IMKit, version config, log noise, English token retry, Release signing.
+- Chi tiết: xem [`20260814_1418-XKeyIM_Debug_Review_Optimization_Points.md`](20260814_1418-XKeyIM_Debug_Review_Optimization_Points.md)
+
+### 2026-08-14 — English Token Retry Analysis
+- `adsense` có thể bị `s` xử lý như dấu sắc vì detector real-time chỉ xét prefix bất hợp lệ.
+- Đề xuất telemetry local không lưu plaintext: hash token, độ dài, trigger và dạng correction.
+- Chi tiết: xem [`20260814_1110-English_Token_Retry_Analysis.md`](20260814_1110-English_Token_Retry_Analysis.md)
+
+### 2026-08-14 — Log-Based Optimization (đề xuất khả thi)
+- Log XKeyIM có cấu trúc máy đọc được, đủ để tối ưu dựa trên data.
+- 9 category: ENGINE(650), CURSOR(641), OVERLAY(515), BACKSPACE(453), TIMING(188), ...
+- Kế hoạch: thêm duration vào TIMING, giảm noise ENGINE/OVERLAY, script analyzer.
+- Chi tiết: xem [`memory/20260814_1052-Log_Based_Optimization_Idea.md`](file:///Users/hacmieu/DevOps/xkey/memory/20260814_1052-Log_Based_Optimization_Idea.md)
+
+### 2026-08-13 — Cursor Tracking False-Positive Fix (VS Code)
+- VS Code trả về `selectedRange().location` sai trong 1 event cycle sau `setMarkedText()`.
+- Gây false-positive "CURSOR MOVED" → engine reset → mất state tone → bỏ dấu thất bại.
+- Fix: thêm flag `skipNextCursorCheck`, bỏ qua cursor check 1 event sau `setMarkedText`/`commitComposition`.
+- Nhật ký đầy đủ: xem [`memory/20260813_2256-Cursor_Tracking_VSCode_Fix.md`](file:///Users/hacmieu/DevOps/xkey/memory/20260813_2256-Cursor_Tracking_VSCode_Fix.md)
+
+### 2026-08-13 — Phân tích Macro System
+
+- **Phát hiện chính:** Hệ thống Macro **hoàn toàn chưa được implement trong XKeyIM** (IMKit / chế độ gạch dưới marked text).
+- Macro chỉ hoạt động ở chế độ CGEvent (XKey main app).
+- 4 thiếu sót cụ thể: settings, engine config, MacroManager init, Space handler.
+- Chi tiết đầy đủ: xem [`reports/20260813_1648-Macro_System_Analysis_XKeyIM.md`](file:///Users/hacmieu/DevOps/xkey/reports/20260813_1648-Macro_System_Analysis_XKeyIM.md)
+
+### 2026-08-13 — Sửa lỗi Macro System
+- Đã thiết lập cài đặt Macro trong `XKeyIMSettings`.
+- Khởi tạo và nạp `MacroManager` trong `XKeyIMController`.
+- Cập nhật `ProcessResult.isMacroReplacement` để XKeyIM hứng được kết quả Macro.
+- Thay thế thành công từ khóa Macro trong luồng `Space` (0x31).
+- Nhật ký đầy đủ: xem [`memory/20260813_2200-Macro_Fix_Completed.md`](file:///Users/hacmieu/DevOps/xkey/memory/20260813_2200-Macro_Fix_Completed.md)
+
+### 2026-08-13 — Liên kết Version.xcconfig cho XKeyIM
+- Sửa `project.pbxproj` gán `baseConfigurationReference` cho target `XKeyIM`.
+- Cập nhật phiên bản hiển thị trên menu thành `1.2.24 (20260813)`.
+- Nhật ký đầy đủ: xem [`memory/20260813_2226-Fix_XKeyIM_Version_Config_Linking.md`](file:///Users/hacmieu/DevOps/xkey/memory/20260813_2226-Fix_XKeyIM_Version_Config_Linking.md)
+
+### Kiến trúc Macro (reference)
+
+| Component | File | Mô tả |
+|-----------|------|-------|
+| `MacroManager` | `XKey/Core/Engine/MacroManager.swift` | Storage, lookup, import/export |
+| `VNEngineMacro` | `XKey/Core/Engine/VNEngineMacro.swift` | Engine extension cho macro |
+| `VNEngine.processWordBreak()` | `XKey/Core/Engine/VNEngine.swift:3380` | Trigger macro khi Space |
+| `KeyboardEventHandler` | `XKey/EventHandling/KeyboardEventHandler.swift` | CGEvent mode init & injection |
+| `XKeyIMController` | `XKeyIM/XKeyIMController.swift` | IMKit mode — **thiếu macro** |

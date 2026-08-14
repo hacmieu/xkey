@@ -897,6 +897,7 @@
 /* Begin XCBuildConfiguration section */
 		100D2BB52EF2B89600C26B87 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = VERSION0001 /* Version.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -933,6 +934,7 @@
 		};
 		100D2BB62EF2B89600C26B87 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = VERSION0001 /* Version.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;

@@ -61,6 +61,19 @@ class XKeyIMController: IMKInputController {
     /// would pay a selectedRange() IPC round trip on every single keystroke.
     private var cursorTrackingVerified: Bool = false
 
+    /// Skip the next cursor-movement check for exactly one event cycle.
+    ///
+    /// VS Code (and some other editors) return a stale/incorrect value from
+    /// `selectedRange().location` in the event immediately after our own
+    /// `setMarkedText()`/`commitComposition()` calls (e.g. reports location = 1
+    /// while the real cursor is at 100). Without this flag the next keystroke is
+    /// misdetected as "CURSOR MOVED" → engine.resetWithCursorMoved() → tone state
+    /// is lost and fast-typing tone marks fail.
+    ///
+    /// Set to `true` by setMarkedText()/commitComposition(), cleared at the start
+    /// of every handle() call.
+    private var skipNextCursorCheck: Bool = false
+
     // Mirror VNEngine upperCaseStatus for IMKit paths where marked-text/cursor
     // bookkeeping can reset engine state before the next printable letter.
     // 0 = none, 1 = punctuation seen, 2 = newline, 3 = punctuation + space seen
@@ -68,6 +81,10 @@ class XKeyIMController: IMKInputController {
     
     /// Last known client bundle ID, used to reset cursorTrackingBroken on app switch
     private var lastClientBundleId: String = ""
+    
+    /// Shared macro manager, populated from the shared App Group plist so macros
+    /// defined in the XKey main app work identically in XKeyIM mode.
+    private let macroManager = MacroManager()
 
     // MARK: - Initialization
 
@@ -95,6 +112,11 @@ class XKeyIMController: IMKInputController {
         // Set up engine logging callback (nil while logging is off — see
         // updateEngineLogWiring)
         updateEngineLogWiring()
+
+        // Share macro manager with the engine and load macro data from the
+        // shared App Group plist so macros work identically to the main app.
+        VNEngine.setSharedMacroManager(macroManager)
+        loadMacrosFromSharedDefaults()
 
         // Apply engine settings from loaded settings
         applySettings()
@@ -146,6 +168,12 @@ class XKeyIMController: IMKInputController {
 
         engineSettings.restoreIfWrongSpelling = settings.restoreIfWrongSpelling
         
+        // Macro settings
+        engineSettings.macroEnabled = settings.macroEnabled
+        engineSettings.macroInEnglishMode = settings.macroInEnglishMode
+        engineSettings.autoCapsMacro = settings.autoCapsMacro
+        engineSettings.addSpaceAfterMacro = settings.addSpaceAfterMacro
+        
         // Parse custom consonants string into Set<UInt16> for engine.
         // Match the main app: only enable custom consonants when the option is on.
         let customConsonantsStr = settings.customConsonantEnabled ? settings.customConsonants : ""
@@ -180,10 +208,51 @@ class XKeyIMController: IMKInputController {
         SharedSettings.shared.invalidateCache()
         settings.reload()
         applySettings()
+        
+        // Reload macros (user may have added/edited/removed shortcuts in the UI)
+        loadMacrosFromSharedDefaults()
 
         // Sync debug logging state - respect user's debug mode toggle
         DebugLogger.shared.isLoggingEnabled = settings.debugModeEnabled
         updateEngineLogWiring()
+    }
+    
+    /// Struct for decoding macro items from the shared App Group plist.
+    /// Mirrors KeyboardEventHandler.MacroItemData in the main app.
+    private struct MacroItemData: Codable {
+        let id: UUID
+        let text: String
+        let content: String
+        let isEnabled: Bool
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            id = try container.decode(UUID.self, forKey: .id)
+            text = try container.decode(String.self, forKey: .text)
+            content = try container.decode(String.self, forKey: .content)
+            // Default to true
+            isEnabled = try container.decodeIfPresent(Bool.self, forKey: .isEnabled) ?? true
+        }
+    }
+    
+    /// Load macros from the shared App Group plist (key "XKey.macrosData").
+    /// This lets macros configured in the XKey main app work in XKeyIM mode too.
+    private func loadMacrosFromSharedDefaults() {
+        macroManager.clearAll()
+        
+        guard let data = SharedSettings.shared.getMacrosData(),
+              let macros = try? JSONDecoder().decode([MacroItemData].self, from: data) else {
+            return
+        }
+        
+        var macCount = 0
+        for macro in macros where macro.isEnabled {
+            _ = macroManager.addMacro(text: macro.text, content: macro.content)
+            macCount += 1
+        }
+        if macCount > 0 {
+            IMKitDebugger.shared.log("Loaded \(macCount) enabled macros from shared defaults", category: "MACRO")
+        }
     }
     
     // MARK: - IMKInputController Overrides
@@ -309,11 +378,19 @@ class XKeyIMController: IMKInputController {
             IMKitDebugger.shared.log("App switched to \(bundleId), reset cursorTrackingBroken", category: "CURSOR")
         }
         
+        // Consume the one-shot skip flag. It must be cleared on every keystroke so
+        // only the single event after setMarkedText/commitComposition is exempt.
+        let skipThisCursorCheck = skipNextCursorCheck
+        skipNextCursorCheck = false
+        
         // CRITICAL FIX: Skip cursor movement detection for:
         // 1. Overlay apps (Spotlight, Raycast, Alfred) - autocomplete changes cursor unpredictably
         // 2. Apps with broken cursor tracking (Warp, some terminals) - always report location=0
         // Without this fix, engine resets after every character, breaking Vietnamese composition
-        if !isOverlay && !cursorTrackingBroken && lastKnownSelectionLocation != NSNotFound {
+        // 3. The event immediately following our own setMarkedText/commitComposition, because
+        //    VS Code and some editors report a stale selectedRange().location that would be a
+        //    false-positive "CURSOR MOVED" → tone state reset (see skipNextCursorCheck).
+        if !isOverlay && !cursorTrackingBroken && lastKnownSelectionLocation != NSNotFound && !skipThisCursorCheck {
             if composingText.isEmpty {
                 // Not composing - check if cursor jumped more than 1 position
                 if actualLocation != expectedLocation && actualLocation != expectedLocation + 1 {
@@ -634,6 +711,45 @@ class XKeyIMController: IMKInputController {
             if !composingText.isEmpty || currentWordLength > 0 {
                 let result = engine.processWordBreak(character: " ")
 
+                // Check if this is a Macro replacement (shortcut → replacement text).
+                // Must be handled BEFORE the spell-check restore branch below.
+                if result.shouldConsume && result.backspaceCount > 0 && result.isMacroReplacement {
+                    // Macro case in marked text mode.
+                    // Use result.newCharacters (NOT getCurrentWord — engine already reset).
+                    let replacementText = result.newCharacters
+                        .map { $0.unicode(codeTable: .unicode) }
+                        .joined()
+                    IMKitDebugger.shared.log("Space: Macro replacement -> '\(replacementText)'", category: "SPACE")
+
+                    // Replace the composing/tracked word with the macro replacement.
+                    if effectiveUseMarkedText && !composingText.isEmpty {
+                        setMarkedText(replacementText, client: client)
+                        commitComposition(client)
+                    } else {
+                        // Direct mode or no composing text: replace the tracked word.
+                        if currentWordLength > 0 {
+                            replaceTextDirect(newText: replacementText, client: client)
+                        } else {
+                            client.insertText(
+                                replacementText,
+                                replacementRange: NSRange(location: NSNotFound, length: 0)
+                            )
+                        }
+                    }
+
+                    // NOTE: Do NOT call engine.reset() here!
+                    // processWordBreak() already handles state management.
+                    currentWordLength = 0
+                    markedTextStartLocation = NSNotFound
+                    // Predict cursor after the space/replacement so the next key isn't
+                    // seen as an unexpected cursor move.
+                    let currentSelection = client.selectedRange()
+                    if currentSelection.location != NSNotFound {
+                        lastKnownSelectionLocation = currentSelection.location + 1
+                    }
+                    return false
+                }
+
                 // Check if this is a restore case (spell check failed, restore to original keystrokes)
                 // In this case, result.newCharacters contains the restored text (e.g., "tieesg")
                 // and result.backspaceCount > 0 indicates how many chars to delete
@@ -943,6 +1059,11 @@ class XKeyIMController: IMKInputController {
 
         composingText = text
         
+        // Skip the next cursor check: some editors (VS Code) report a stale
+        // selectedRange() right after setMarkedText, which would otherwise be a
+        // false-positive "CURSOR MOVED" resetting our tone state.
+        skipNextCursorCheck = true
+        
         // Update cursor tracking: cursor is now at end of marked text
         // markedTextStartLocation + text length = expected cursor position
         if markedTextStartLocation != NSNotFound {
@@ -1142,6 +1263,11 @@ class XKeyIMController: IMKInputController {
         }
 
         markedTextStartLocation = NSNotFound
+        
+        // Skip the next cursor check: after commitComposition, some editors (VS Code)
+        // return a stale selectedRange() that would be a false-positive "CURSOR MOVED"
+        // and reset the engine's tone state on the very next keystroke.
+        skipNextCursorCheck = true
         
         // Update cursor tracking after commit
         let newSelection = client.selectedRange()
@@ -1408,6 +1534,12 @@ class XKeyIMSettings {
     var useMarkedText: Bool = true  // Default to true - standard IMKit behavior
     var debugModeEnabled: Bool = false  // Controls whether XKeyIM writes to ~/XKey_Debug.log
     
+    // MARK: Macro Settings
+    var macroEnabled: Bool = false
+    var macroInEnglishMode: Bool = false
+    var autoCapsMacro: Bool = false
+    var addSpaceAfterMacro: Bool = false
+    
     init() {
         reload()
     }
@@ -1451,6 +1583,12 @@ class XKeyIMSettings {
         
         // Debug Mode - controls whether XKeyIM writes to ~/XKey_Debug.log
         debugModeEnabled = readBool(forKey: "XKey.debugModeEnabled")
+        
+        // Macro settings
+        macroEnabled = readBool(forKey: "XKey.macroEnabled")
+        macroInEnglishMode = readBool(forKey: "XKey.macroInEnglishMode")
+        autoCapsMacro = readBool(forKey: "XKey.autoCapsMacro")
+        addSpaceAfterMacro = readBool(forKey: "XKey.addSpaceAfterMacro")
     }
     
     // MARK: - Plist Read Helpers

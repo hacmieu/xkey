@@ -3245,6 +3245,11 @@ extension VNEngine {
         var backspaceCount: Int = 0
         var newCharacters: [VNCharacter] = []
         
+        /// True when this result is a Macro replacement (shortcut → replacement text),
+        /// not a normal spell-check restore. XKeyIM uses this to take the macro-specific
+        /// code path (insert replacement text directly) instead of the undo/restore path.
+        var isMacroReplacement: Bool = false
+        
         // Static helper for common cases
         static let doNothing = ProcessResult(shouldConsume: false, backspaceCount: 0, newCharacters: [])
     }
@@ -3801,6 +3806,10 @@ extension VNEngine {
         result.shouldConsume = hookState.code == UInt8(vWillProcess) || 
                                hookState.code == UInt8(vRestore) ||
                                hookState.code == UInt8(vReplaceMacro)
+        
+        // Mark macro replacements so XKeyIM can take the macro-specific code path
+        // (insert replacement text directly) instead of the normal undo/restore path.
+        result.isMacroReplacement = (hookState.code == UInt8(vReplaceMacro))
         
         result.backspaceCount = hookState.backspaceCount
 
