@@ -1,10 +1,16 @@
 # Memory — XKey
 
-**Cập nhật lần cuối:** 2026-08-14 16:40
+**Cập nhật lần cuối:** 2026-08-14 16:56
 
 ---
 
 ## Ghi chú thiết kế (Design Notes)
+
+### 2026-08-14 — Fork & Commit lên GitHub hacmieu
+- Commit `cb5a720` trên branch `rebuild-20260813-stable` — rebuild 20260813 + docs.
+- Fork `xmannv/xkey` → `hacmieu/xkey`, push branch thành công.
+- Bản stable giờ đã an toàn trên GitHub cá nhân.
+- Chi tiết: xem [`20260814_1656-Fork_Commit_GitHub_Hacmieu.md`](20260814_1656-Fork_Commit_GitHub_Hacmieu.md)
 
 ### 2026-08-14 — Rebuild 20260813 Stable Build
 - Bản 20260813 (Macro XKeyIM + cursor fix + version linking) bị mất do `git reset --hard HEAD` — chưa từng được commit.
