@@ -454,9 +454,9 @@ class XKeyIMController: IMKInputController {
         // NOTE: Only apply this check in marked text mode. In direct mode (overlay apps),
         // composingText is always empty but engine has valid buffer - this is expected.
         let engineWord = engine.getCurrentWord()
-        if effectiveUseMarkedText && composingText.isEmpty && !engineWord.isEmpty {
+        if effectiveUseMarkedText && composingText.isEmpty && (!engineWord.isEmpty || engine.spaceCount > 0) {
             // DEBUG: Log desync detection
-            IMKitDebugger.shared.log("DESYNC detected! composingText empty but engine has '\(engineWord)'. Resetting.", category: "CURSOR")
+            IMKitDebugger.shared.log("DESYNC detected! composingText empty but engine has '\(engineWord)' (spaceCount=\(engine.spaceCount)). Resetting.", category: "CURSOR")
             // Do NOT reset imUpperCaseStatus here; see cursorMoved block above.
             engine.resetWithCursorMoved()
             currentWordLength = 0
@@ -747,7 +747,7 @@ class XKeyIMController: IMKInputController {
                     if currentSelection.location != NSNotFound {
                         lastKnownSelectionLocation = currentSelection.location + 1
                     }
-                    return false
+                    return !settings.addSpaceAfterMacro
                 }
 
                 // Check if this is a restore case (spell check failed, restore to original keystrokes)
@@ -1262,6 +1262,7 @@ class XKeyIMController: IMKInputController {
             composingText = ""
         }
 
+        currentWordLength = 0
         markedTextStartLocation = NSNotFound
         
         // Skip the next cursor check: after commitComposition, some editors (VS Code)
@@ -1354,6 +1355,10 @@ class XKeyIMController: IMKInputController {
     /// Called when input method is deactivated
     override func deactivateServer(_ sender: Any!) {
         commitComposition(sender)
+        engine.reset()
+        composingText = ""
+        currentWordLength = 0
+        markedTextStartLocation = NSNotFound
         super.deactivateServer(sender)
         NSLog("XKeyIMController: Deactivated")
     }

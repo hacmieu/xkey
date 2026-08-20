@@ -1,10 +1,33 @@
 # Memory — XKey
 
-**Cập nhật lần cuối:** 2026-08-14 16:56
+**Cập nhật lần cuối:** 2026-08-20 07:20
 
 ---
 
 ## Ghi chú thiết kế (Design Notes)
+
+### 2026-08-20 — Đánh giá Upstream Release v1.2.25 (Build 20260818)
+- Phân tích bản cập nhật mới `v1.2.25-20260818` (commit `7a59d9a`) từ upstream: Tối ưu lazy AX queries cho DOM element và cache Priority-2 fallback để chống đơ/lag trên Chrome/Gmail.
+- Đánh giá tính tương thích: Không có xung đột với các bản vá IMKit hiện tại của fork (Macro, cursor tracking, space lost focus).
+- Bản hiện tại (`20260816`) đang hoạt động rất tốt; không có lỗi cấp bách cần sửa.
+- Nhật ký đầy đủ: xem [`memory/20260820_0720-Analysis_Upstream_v1.2.25_20260818_Sync_Evaluation.md`](file:///Users/hacmieu/DevOps/xkey/memory/20260820_0720-Analysis_Upstream_v1.2.25_20260818_Sync_Evaluation.md)
+
+### 2026-08-16 — Sửa lỗi Macro, Space thừa khi Lost Focus & Phục hồi dấu
+- Đã sửa return của Macro `return !settings.addSpaceAfterMacro` tránh nạp space thừa.
+- Reset engine triệt để khi `deactivateServer` và `commitComposition` để không tràn space khi lost focus.
+- Bổ sung DESYNC check cho `spaceCount > 0` và đồng bộ diacritic restore.
+- Nhật ký đầy đủ: xem [`memory/20260816_1410-Fix_Macro_Space_Desync_And_Diacritics.md`](file:///Users/hacmieu/DevOps/xkey/memory/20260816_1410-Fix_Macro_Space_Desync_And_Diacritics.md)
+
+### 2026-08-16 — Sửa lỗi Apple Settings nhảy về bản 21/7 (20260721)
+- Phát hiện `/Applications/XKey.app` mang bản build cũ `20260721`.
+- Cập nhật bản mới `20260816` vào cả `/Applications/XKey.app` và `~/Library/Input Methods/XKeyIM.app`.
+- Sửa `build_release.sh` để tự động đồng bộ `/Applications/XKey.app` và gọi `lsregister`.
+- Nhật ký đầy đủ: xem [`memory/20260816_1440-Fix_Apple_Settings_Version_Fallback.md`](file:///Users/hacmieu/DevOps/xkey/memory/20260816_1440-Fix_Apple_Settings_Version_Fallback.md)
+
+### 2026-08-16 — Sửa lỗi "The application 'XKey' can't be opened"
+- Nguyên nhân: `taskgated` kill `XKey.app` do chữ ký số của `Sparkle.framework` thiếu cờ `--deep`.
+- Bổ sung `--deep` vào lệnh `codesign` trong `build_release.sh` và ký lại ứng dụng.
+- Nhật ký đầy đủ: xem [`memory/20260816_1558-Fix_XKey_Settings_Cant_Be_Opened.md`](file:///Users/hacmieu/DevOps/xkey/memory/20260816_1558-Fix_XKey_Settings_Cant_Be_Opened.md)
 
 ### 2026-08-14 — Fork & Commit lên GitHub hacmieu
 - Commit `cb5a720` trên branch `rebuild-20260813-stable` — rebuild 20260813 + docs.
@@ -97,6 +120,12 @@
 - Sửa `project.pbxproj` gán `baseConfigurationReference` cho target `XKeyIM`.
 - Cập nhật phiên bản hiển thị trên menu thành `1.2.24 (20260813)`.
 - Nhật ký đầy đủ: xem [`memory/20260813_2226-Fix_XKeyIM_Version_Config_Linking.md`](file:///Users/hacmieu/DevOps/xkey/memory/20260813_2226-Fix_XKeyIM_Version_Config_Linking.md)
+
+### 2026-08-16 — Sửa lỗi Macro, Space thừa khi Lost Focus & Phục hồi dấu
+- Đã sửa return của Macro `return !settings.addSpaceAfterMacro` tránh nạp space thừa.
+- Reset engine triệt để khi `deactivateServer` và `commitComposition` để không tràn space khi lost focus.
+- Bổ sung DESYNC check cho `spaceCount > 0` và đồng bộ diacritic restore.
+- Nhật ký đầy đủ: xem [`memory/20260816_1410-Fix_Macro_Space_Desync_And_Diacritics.md`](file:///Users/hacmieu/DevOps/xkey/memory/20260816_1410-Fix_Macro_Space_Desync_And_Diacritics.md)
 
 ### Kiến trúc Macro (reference)
 

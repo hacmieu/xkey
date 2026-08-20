@@ -330,8 +330,9 @@ if [ "$ENABLE_CODESIGN" = true ]; then
 else
     # Ad-hoc sign with correct identifier (required for Accessibility permissions)
     # IMPORTANT: Include entitlements to preserve App Group for data sharing
+    # IMPORTANT: Use --deep to sign nested frameworks (Sparkle) so taskgated doesn't kill the app
     echo "🔐 Ad-hoc signing with correct bundle identifier..."
-    codesign --force --sign - --identifier "$BUNDLE_ID" --entitlements "$XKEY_ENTITLEMENTS_EXPANDED" Release/XKey.app
+    codesign --force --deep --sign - --identifier "$BUNDLE_ID" --entitlements "$XKEY_ENTITLEMENTS_EXPANDED" Release/XKey.app
     echo "✅ Ad-hoc signed with identifier: $BUNDLE_ID"
 fi
 
@@ -442,7 +443,7 @@ if [ "$ENABLE_XKEYIM" = true ]; then
             if [ "$ENABLE_CODESIGN" = true ]; then
                 codesign --force --sign "$DEVELOPER_ID" --timestamp --options=runtime --entitlements "$XKEY_ENTITLEMENTS_EXPANDED" "Release/XKey.app"
             else
-                codesign --force --sign - --identifier "$BUNDLE_ID" --entitlements "$XKEY_ENTITLEMENTS_EXPANDED" "Release/XKey.app"
+                codesign --force --deep --sign - --identifier "$BUNDLE_ID" --entitlements "$XKEY_ENTITLEMENTS_EXPANDED" "Release/XKey.app"
             fi
 
             # Verify XKey.app signature after re-signing
@@ -466,11 +467,26 @@ if [ "$ENABLE_XKEYIM" = true ]; then
             sleep 1
         fi
         
-        # Copy to Input Methods
+        # Copy to Input Methods and Applications
         rm -rf ~/Library/Input\ Methods/XKeyIM.app
-        cp -R "Release/XKeyIM.app" ~/Library/Input\ Methods/
+        if [ -d "Release/XKey.app/Contents/Resources/XKeyIM.app" ]; then
+            cp -R "Release/XKey.app/Contents/Resources/XKeyIM.app" ~/Library/Input\ Methods/
+        else
+            cp -R "Release/XKeyIM.app" ~/Library/Input\ Methods/
+        fi
         echo "✅ XKeyIM installed to ~/Library/Input Methods/"
-        echo "   New version will load automatically on next use"
+
+        # If /Applications/XKey.app exists, update it to prevent Apple Settings from falling back to old version
+        if [ -d "/Applications/XKey.app" ]; then
+            rm -rf /Applications/XKey.app
+            cp -R "Release/XKey.app" /Applications/
+            echo "✅ Updated /Applications/XKey.app"
+        fi
+
+        # Re-register LaunchServices
+        /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f -R ~/Library/Input\ Methods/XKeyIM.app 2>/dev/null || true
+        /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f -R /Applications/XKey.app 2>/dev/null || true
+        echo "   New version registered with LaunchServices"
 
     else
         echo "⚠️  XKeyIM target not found in Xcode project, skipping..."
