@@ -1,10 +1,17 @@
 # Memory — XKey
 
-**Cập nhật lần cuối:** 2026-08-20 07:20
+**Cập nhật lần cuối:** 2026-08-20 09:05
 
 ---
 
 ## Ghi chú thiết kế (Design Notes)
+
+### 2026-08-20 — Tích hợp Commit 7a59d9a (Upstream v1.2.25) & Build 20260820
+- Đã sao lưu bản build `20260816` vào `~/DevOps/xkey_backups/backup_20260816_stable/`.
+- Đã cherry-pick thành công commit `7a59d9a`: Lazy AX DOM attributes, Priority-2 fallback cache, role gate cho address bar để chống freeze trên Chrome/Gmail.
+- Đã chạy 17/17 Unit Tests `FocusedElementInfoLazyTests` và toàn bộ `VNEngineTests` thành công 100%.
+- Đã build và cập nhật phiên bản mới `1.2.25 (20260820)` vào `~/Library/Input Methods/XKeyIM.app` và `/Applications/XKey.app`.
+- Nhật ký đầy đủ: xem [`memory/20260820_0905-Cherry_Pick_7a59d9a_And_Build_v1.2.25.md`](file:///Users/hacmieu/DevOps/xkey/memory/20260820_0905-Cherry_Pick_7a59d9a_And_Build_v1.2.25.md)
 
 ### 2026-08-20 — Đánh giá Upstream Release v1.2.25 (Build 20260818)
 - Phân tích bản cập nhật mới `v1.2.25-20260818` (commit `7a59d9a`) từ upstream: Tối ưu lazy AX queries cho DOM element và cache Priority-2 fallback để chống đơ/lag trên Chrome/Gmail.

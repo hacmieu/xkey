@@ -1,6 +1,6 @@
 # Reports — XKey
 
-**Cập nhật lần cuối:** 2026-08-20 07:20
+**Cập nhật lần cuối:** 2026-08-20 09:05
 
 ---
 
@@ -8,6 +8,7 @@
 
 | Ngày | Tên | Loại | Link |
 |------|-----|------|------|
+| 2026-08-20 | Triển khai Cherry-pick Upstream 7a59d9a & Build v1.2.25 | 🚀 Phát hành & Triển khai | [`20260820_0905-Cherry_Pick_7a59d9a_And_Build_v1.2.25.md`](file:///Users/hacmieu/DevOps/xkey/reports/20260820_0905-Cherry_Pick_7a59d9a_And_Build_v1.2.25.md) |
 | 2026-08-20 | Phân tích Upstream v1.2.25 & Đánh giá Tương thích | 🔍 Phân tích & Đánh giá | [`20260820_0720-Analysis_Upstream_v1.2.25_20260818_Sync_Evaluation.md`](file:///Users/hacmieu/DevOps/xkey/reports/20260820_0720-Analysis_Upstream_v1.2.25_20260818_Sync_Evaluation.md) |
 | 2026-08-14 | Rebuild 20260813 Stable Build | 🔧 Khôi phục | [`20260814_1640-Rebuild_20260813_Stable_Build.md`](20260814_1640-Rebuild_20260813_Stable_Build.md) |
 | 2026-08-14 | Punctuation Context Bug Report | 🔍 Phân tích | [`20260814_1450-Punctuation_Context_Bug_Report.md`](20260814_1450-Punctuation_Context_Bug_Report.md) |
