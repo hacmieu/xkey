@@ -18,7 +18,7 @@ extension VNEngine {
         var spellCheckEnabled: Bool = true
         
         // Advanced features
-        var quickTelexEnabled: Bool = true
+        var quickTelexEnabled: Bool = false
         var quickStartConsonantEnabled: Bool = false
         var quickEndConsonantEnabled: Bool = false
         var upperCaseFirstChar: Bool = false
@@ -63,10 +63,10 @@ extension VNEngine {
         vCheckSpelling = settings.spellCheckEnabled ? 1 : 0
         useSpellCheckingBefore = settings.spellCheckEnabled  // Sync internal state to prevent restoration to old value
         
-        // Advanced features
-        vQuickTelex = settings.quickTelexEnabled ? 1 : 0
-        vQuickStartConsonant = settings.quickStartConsonantEnabled ? 1 : 0
-        vQuickEndConsonant = settings.quickEndConsonantEnabled ? 1 : 0
+        // Advanced features (Gõ nhanh disabled for this machine build)
+        vQuickTelex = 0
+        vQuickStartConsonant = 0
+        vQuickEndConsonant = 0
         // Clear any pending auto-capitalize status when feature is toggled off,
         // so stale status from before the toggle doesn't leak into future typing
         // if the feature is later re-enabled.

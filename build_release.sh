@@ -140,6 +140,12 @@ if [ "$ENABLE_CODESIGN" = true ]; then
         echo ""
         echo "   Building without code signing..."
         ENABLE_CODESIGN=false
+        
+        # FIX: Without code signing, we will fallback to Ad-hoc signing (-)
+        # Ad-hoc signed apps with Restricted Entitlements like iCloud KVS will crash on launch
+        # (Error 162 Code Signature Invalid) unless we strip the entitlements.
+        ENABLE_ICLOUD_ENTITLEMENT=false
+        echo "⚠️  Falling back to Ad-hoc signing. Disabling iCloud entitlements to prevent crash."
     else
         # codesign --sign accepts the SHA-1 hash and resolves it unambiguously.
         DEVELOPER_ID="$CODESIGN_IDENTITY_SHA"

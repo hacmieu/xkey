@@ -13,7 +13,6 @@ import SwiftUI
 
 enum SettingsSection: String, CaseIterable, Identifiable {
     case general = "Cơ bản"
-    case quickTyping = "Gõ nhanh"
     case advanced = "Nâng cao"
     case inputSources = "Input Sources"
     case excludedApps = "Loại trừ"
@@ -29,7 +28,6 @@ enum SettingsSection: String, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .general: return "gearshape"
-        case .quickTyping: return "keyboard"
         case .advanced: return "slider.horizontal.3"
         case .inputSources: return "globe"
         case .excludedApps: return "app.badge.fill"
@@ -88,8 +86,6 @@ struct SettingsView: View {
                 switch navigator.selectedSection {
                 case .general:
                     GeneralSection(viewModel: viewModel)
-                case .quickTyping:
-                    QuickTypingSection(viewModel: viewModel)
                 case .advanced:
                     AdvancedSection(viewModel: viewModel)
                 case .inputSources:

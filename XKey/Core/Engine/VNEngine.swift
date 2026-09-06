@@ -49,7 +49,7 @@ class VNEngine {
     var vCodeTable = 0             // 0: Unicode, 1: TCVN3, 2: VNI-Windows
     var vCheckSpelling = 1         // 0: No, 1: Yes
     var vUseModernOrthography = 1  // 0: òa/úy, 1: oà/uý
-    var vQuickTelex = 1            // 0: No, 1: Yes (cc=ch, gg=gi, etc.)
+    var vQuickTelex = 0            // 0: No, 1: Yes (cc=ch, gg=gi, etc.)
     var vRestoreIfWrongSpelling = 1 // 0: No, 1: Yes
     var vSkipRestoreForUppercaseVietnameseAbbreviations = 0 // 0: No, 1: Yes
     var vFixRecommendBrowser = 1   // 0: No, 1: Yes

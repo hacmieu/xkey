@@ -6,6 +6,49 @@
 
 ## Ghi chú thiết kế (Design Notes)
 
+### 2026-09-06 — Sửa lỗi Macro Double Space & Loại bỏ tính năng Gõ nhanh
+- **Sửa Macro Double Space:** Khắc phục lỗi trả về `return !settings.addSpaceAfterMacro` trong `XKeyIMController.swift` khiến IMKit pass-through sự kiện phím Space gốc vào app, sinh ra 2 dấu cách khi mở rộng macro. Chuyển thành `return true` và đồng bộ vị trí con trỏ `lastKnownSelectionLocation`.
+- **Loại bỏ Gõ nhanh:** Xóa mục `Gõ nhanh` khỏi Settings Sidebar (`SettingsView.swift`, `PreferencesView.swift`), vô hiệu hóa triệt để Quick Telex (`cc->ch`,...) và Quick Consonants (`f->ph`, `g->ng`,...) trong `Preferences.swift`, `VNEngine.swift`, `VNEngineSettings.swift` và `XKeyIMSettings`.
+- **Build & Deploy:** Tăng build number lên `20260906`, biên dịch Release và cài đặt vào `/Applications/XKey.app` và `~/Library/Input Methods/XKeyIM.app`.
+- Nhật ký chi tiết: xem [`memory/20260906_2350-Fix_Macro_Double_Space_And_Remove_QuickTyping_Memory.md`](file:///Users/hacmieu/DevOps/xkey/memory/20260906_2350-Fix_Macro_Double_Space_And_Remove_QuickTyping_Memory.md)
+
+### 2026-08-25 — Áp dụng lại fix lỗi Crash iCloud Entitlement
+- Khôi phục lại đoạn code fix lỗi Crash Code Signature Invalid (do iCloud Entitlement) trong `build_release.sh` sau khi bị mất do Rollback.
+- Nhật ký chi tiết: xem [`memory/20260825_1450-Refix_iCloud_Entitlement_Memory.md`](file:///Users/hacmieu/DevOps/xkey/memory/20260825_1450-Refix_iCloud_Entitlement_Memory.md)
+
+### 2026-08-25 — Rollback các thay đổi tự động nhận diện tiếng Anh
+- Hủy bỏ các tính năng tự động nhận diện tiếng Anh (Instant Restore, VCV rule) do người dùng chọn giải pháp sử dụng phím `ESC` để ngắt dấu (đơn giản và hiệu quả).
+- Khôi phục mã nguồn về nguyên trạng (bao gồm cả `build_release.sh`).
+- Nhật ký chi tiết: xem [`memory/20260825_1444-Rollback_English_Detection_Memory.md`](file:///Users/hacmieu/DevOps/xkey/memory/20260825_1444-Rollback_English_Detection_Memory.md)
+
+### 2026-08-25 — Nhận diện tiếng Anh thông minh qua Luật VCV (Vowel-Consonant-Vowel)
+- Phát hiện từ tiếng Anh ngay từ giữa từ khi đang gõ bằng cách quét chuỗi Raw Input để tìm cấu trúc Vowel-Consonant-Vowel (ví dụ chữ `d` kẹp giữa chữ `a` và `e` trong từ `Adsense`).
+- Lọc bỏ các dấu Telex (s, f, r, x, j) và bảo vệ các trường hợp gõ dấu muộn (như `cana` -> `cân`).
+- Nhật ký chi tiết: xem [`memory/20260825_1438-VCV_Instant_Restore_Memory.md`](file:///Users/hacmieu/DevOps/xkey/memory/20260825_1438-VCV_Instant_Restore_Memory.md)
+
+### 2026-08-25 — Khắc phục lỗi Crash khi mở XKey Settings do iCloud Entitlement
+- Đã khắc phục triệt để lỗi `The application can't be opened` (Code 162) khi mở XKey Settings.
+- Nguyên nhân: Việc build Ad-hoc (thiếu chứng chỉ) đi kèm với iCloud Entitlement sẽ khiến ứng dụng bị macOS chặn ngay khi mở.
+- Giải pháp: Chỉnh sửa `build_release.sh` để mỗi khi fallback về Ad-hoc signing thì sẽ tự động gán cờ `ENABLE_ICLOUD_ENTITLEMENT=false`, từ đó gỡ bỏ quyền này trước khi ký.
+- Nhật ký chi tiết: xem [`memory/20260825_1423-Fix_AdHoc_iCloud_Entitlement_Memory.md`](file:///Users/hacmieu/DevOps/xkey/memory/20260825_1423-Fix_AdHoc_iCloud_Entitlement_Memory.md)
+
+### 2026-08-25 — Implement Auto-Restore for English Word Detection
+- Đã thêm cờ `isInstantRestore` vào `ProcessResult`.
+- Trong `VNEngine.swift`, khi phát hiện mẫu tiếng Anh không hợp lệ (`isDefinitelyNotVietnamese`), tự động gọi `checkRestoreIfWrongSpelling` với `extCode = 5` (Instant Restore).
+- Trong `XKeyIMController.swift`, xử lý `isInstantRestore` bằng cách gọi ngay `commitComposition(client)`.
+- Kết quả: Khi người dùng gõ từ tiếng Anh bị sai quy tắc tiếng Việt, dấu sẽ bị gỡ tự động và gạch dưới sẽ biến mất ngay lập tức, khắc phục triệt để sự khó chịu.
+- Nhật ký chi tiết: xem [`memory/20260825_1411-English_Detection_AutoRestore_Memory.md`](file:///Users/hacmieu/DevOps/xkey/memory/20260825_1411-English_Detection_AutoRestore_Memory.md)
+
+### 2026-08-25 — Nghiên cứu thuật toán nhận diện từ tiếng Anh và khôi phục phím
+- Vấn đề: Gõ từ tiếng Anh bị gạch dưới và cố gắng ép dấu tiếng Việt gây khó chịu.
+- Giải pháp đề xuất: Áp dụng kiểm tra luật ghép vần tiếng Việt (Phonotactic rules). Nếu chuỗi gõ vi phạm cấu trúc âm tiết tiếng Việt, tự động khôi phục phím (rollback dấu) và Commit Composition để xóa gạch dưới.
+- Nhật ký đầy đủ: xem [`reports/20260825_1404-English_Word_Detection_Algorithm_Research.md`](file:///Users/hacmieu/DevOps/xkey/reports/20260825_1404-English_Word_Detection_Algorithm_Research.md)
+
+### 2026-08-24 — Phân tích trải nghiệm gạch dưới & đẩy dấu khi gõ tiếng Anh
+- Phân tích nguyên nhân: do bản chất buffer của Input Method Kit (IMKit) và cơ chế bắt dấu realtime của VNEngine.
+- Giải pháp tốt nhất cho người dùng: Thiết lập "Phím tắt chuyển nhanh sang XKey" (như Cmd+Space) để chuyển sang bộ gõ tiếng Anh (ABC) khi cần gõ văn bản tiếng Anh thuần túy.
+- Nhật ký đầy đủ: xem [`reports/20260824_1431-English_Marked_Text_Issue_Analysis.md`](file:///Users/hacmieu/DevOps/xkey/reports/20260824_1431-English_Marked_Text_Issue_Analysis.md)
+
 ### 2026-08-20 — Tích hợp Commit 7a59d9a (Upstream v1.2.25) & Build 20260820
 - Đã sao lưu bản build `20260816` vào `~/DevOps/xkey_backups/backup_20260816_stable/`.
 - Đã cherry-pick thành công commit `7a59d9a`: Lazy AX DOM attributes, Priority-2 fallback cache, role gate cho address bar để chống freeze trên Chrome/Gmail.

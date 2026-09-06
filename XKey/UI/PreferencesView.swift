@@ -15,7 +15,6 @@ import SwiftUI
 enum PreferencesSection: String, CaseIterable, Identifiable {
     case about = "Giới thiệu"
     case general = "Cơ bản"
-    case quickTyping = "Gõ nhanh"
     case advanced = "Nâng cao"
     case inputSources = "Input Sources"
     case excludedApps = "Loại trừ"
@@ -31,7 +30,6 @@ enum PreferencesSection: String, CaseIterable, Identifiable {
         switch self {
         case .about: return "info.circle"
         case .general: return "gearshape"
-        case .quickTyping: return "keyboard"
         case .advanced: return "slider.horizontal.3"
         case .inputSources: return "globe"
         case .excludedApps: return "app.badge.fill"
@@ -53,14 +51,13 @@ enum PreferencesSection: String, CaseIterable, Identifiable {
         switch tabIndex {
         case 0: return .about
         case 1: return .general
-        case 2: return .quickTyping
-        case 3: return .advanced
-        case 4: return .inputSources
-        case 5: return .excludedApps
-        case 6: return .macro
-        case 7: return .convertTool
-        case 8: return .appearance
-        case 9: return .backupRestore
+        case 2: return .advanced
+        case 3: return .inputSources
+        case 4: return .excludedApps
+        case 5: return .macro
+        case 6: return .convertTool
+        case 7: return .appearance
+        case 8: return .backupRestore
         default: return .general
         }
     }
@@ -122,8 +119,6 @@ struct PreferencesView: View {
                     AboutSection()
                 case .general:
                     GeneralSection(viewModel: viewModel)
-                case .quickTyping:
-                    QuickTypingSection(viewModel: viewModel)
                 case .advanced:
                     AdvancedSection(viewModel: viewModel)
                 case .inputSources:

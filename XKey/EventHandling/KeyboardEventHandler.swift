@@ -61,7 +61,7 @@ class KeyboardEventHandler: EventTapManager.EventTapDelegate {
 
     
     // Advanced features
-    @Published var quickTelexEnabled: Bool = true {
+    @Published var quickTelexEnabled: Bool = false {
         didSet { updateEngineSettings() }
     }
     

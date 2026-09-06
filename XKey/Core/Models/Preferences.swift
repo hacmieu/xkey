@@ -85,9 +85,9 @@ struct Preferences: Codable {
     var spellCheckEnabled: Bool = false
     
     // Advanced features
-    var quickTelexEnabled: Bool = true           // cc→ch, gg→gi, etc.
-    var quickStartConsonantEnabled: Bool = false // f→ph, j→gi, w→qu
-    var quickEndConsonantEnabled: Bool = false   // g→ng, h→nh, k→ch
+    var quickTelexEnabled: Bool = false          // cc→ch, gg→gi, etc. (disabled)
+    var quickStartConsonantEnabled: Bool = false // f→ph, j→gi, w→qu (disabled)
+    var quickEndConsonantEnabled: Bool = false   // g→ng, h→nh, k→ch (disabled)
     var upperCaseFirstChar: Bool = false         // Auto capitalize first letter
     var capitalizeOnlyAfterSpace: Bool = true    // Sub-option: only capitalize after . ? ! when followed by a space (newline still always caps)
     var restoreIfWrongSpelling: Bool = true      // Restore if wrong spelling

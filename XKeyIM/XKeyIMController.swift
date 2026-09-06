@@ -160,9 +160,9 @@ class XKeyIMController: IMKInputController {
         engineSettings.modernStyle = settings.modernStyle
         engineSettings.spellCheckEnabled = settings.spellCheckEnabled
 
-        engineSettings.quickTelexEnabled = settings.quickTelexEnabled
-        engineSettings.quickStartConsonantEnabled = settings.quickStartConsonantEnabled
-        engineSettings.quickEndConsonantEnabled = settings.quickEndConsonantEnabled
+        engineSettings.quickTelexEnabled = false
+        engineSettings.quickStartConsonantEnabled = false
+        engineSettings.quickEndConsonantEnabled = false
         engineSettings.upperCaseFirstChar = settings.upperCaseFirstChar
         engineSettings.capitalizeOnlyAfterSpace = settings.capitalizeOnlyAfterSpace
 
@@ -745,9 +745,10 @@ class XKeyIMController: IMKInputController {
                     // seen as an unexpected cursor move.
                     let currentSelection = client.selectedRange()
                     if currentSelection.location != NSNotFound {
-                        lastKnownSelectionLocation = currentSelection.location + 1
+                        lastKnownSelectionLocation = currentSelection.location
                     }
-                    return !settings.addSpaceAfterMacro
+                    skipNextCursorCheck = true
+                    return true
                 }
 
                 // Check if this is a restore case (spell check failed, restore to original keystrokes)
@@ -1528,7 +1529,7 @@ class XKeyIMSettings {
     var modernStyle: Bool = true
     var spellCheckEnabled: Bool = true
 
-    var quickTelexEnabled: Bool = true
+    var quickTelexEnabled: Bool = false
     var quickStartConsonantEnabled: Bool = false
     var quickEndConsonantEnabled: Bool = false
     var restoreIfWrongSpelling: Bool = true
@@ -1570,9 +1571,9 @@ class XKeyIMSettings {
         modernStyle = readBool(forKey: "XKey.modernStyle")
         spellCheckEnabled = readBool(forKey: "XKey.spellCheckEnabled")
 
-        quickTelexEnabled = readBool(forKey: "XKey.quickTelexEnabled", defaultValue: true)
-        quickStartConsonantEnabled = readBool(forKey: "XKey.quickStartConsonantEnabled")
-        quickEndConsonantEnabled = readBool(forKey: "XKey.quickEndConsonantEnabled")
+        quickTelexEnabled = false
+        quickStartConsonantEnabled = false
+        quickEndConsonantEnabled = false
         restoreIfWrongSpelling = readBool(forKey: "XKey.restoreIfWrongSpelling", defaultValue: true)
         upperCaseFirstChar = readBool(forKey: "XKey.upperCaseFirstChar")
         capitalizeOnlyAfterSpace = readBool(forKey: "XKey.capitalizeOnlyAfterSpace", defaultValue: true)
