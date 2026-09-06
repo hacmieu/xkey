@@ -6,6 +6,12 @@
 
 ## Ghi chú thiết kế (Design Notes)
 
+### 2026-09-07 — Khắc phục Sparkle Auto-Update tự động ghi đè bản Upstream
+- **Hiện tượng:** Người dùng vẫn thấy tab "Gõ nhanh" và menu báo `Phiên bản 1.2.25 (20260904)`.
+- **Nguyên nhân:** Sparkle framework tự động tải bản upstream `20260904` và tiến trình `Updater.app` đã ghi đè vào `/Applications/XKey.app` ngay sau khi bản build cục bộ hoàn tất.
+- **Khắc phục:** Đặt `SUEnableAutomaticChecks = false` và `SUAutomaticallyUpdate = false` trong `XKey/Info.plist` và `NSUserDefaults`, xóa cache Sparkle, tăng version lên `20260907` và build cài đặt lại sạch sẽ.
+- Nhật ký chi tiết: xem [`memory/20260907_0138-Fix_Sparkle_AutoUpdate_Overwrite_Memory.md`](file:///Users/hacmieu/DevOps/xkey/memory/20260907_0138-Fix_Sparkle_AutoUpdate_Overwrite_Memory.md)
+
 ### 2026-09-06 — Sửa lỗi Macro Double Space & Loại bỏ tính năng Gõ nhanh
 - **Sửa Macro Double Space:** Khắc phục lỗi trả về `return !settings.addSpaceAfterMacro` trong `XKeyIMController.swift` khiến IMKit pass-through sự kiện phím Space gốc vào app, sinh ra 2 dấu cách khi mở rộng macro. Chuyển thành `return true` và đồng bộ vị trí con trỏ `lastKnownSelectionLocation`.
 - **Loại bỏ Gõ nhanh:** Xóa mục `Gõ nhanh` khỏi Settings Sidebar (`SettingsView.swift`, `PreferencesView.swift`), vô hiệu hóa triệt để Quick Telex (`cc->ch`,...) và Quick Consonants (`f->ph`, `g->ng`,...) trong `Preferences.swift`, `VNEngine.swift`, `VNEngineSettings.swift` và `XKeyIMSettings`.

@@ -6,6 +6,11 @@
 
 ## Nhật ký Kế hoạch (Plans)
 
+### 2026-09-07 — Khắc phục Sparkle Auto-Update tự động ghi đè bản Upstream
+- Điều tra hiện tượng sau khi loại bỏ "Gõ nhanh", app bị tráo đổi về bản upstream `20260904` do Sparkle framework âm thầm ghi đè.
+- Kế hoạch: Tắt `SUEnableAutomaticChecks` và `SUAutomaticallyUpdate` trong `Info.plist`, xóa cache Sparkle, nâng build version lên `20260907` và build lại.
+- Chi tiết: xem [`plans/20260907_0138-Fix_Sparkle_AutoUpdate_Overwrite_Plan.md`](file:///Users/hacmieu/DevOps/xkey/plans/20260907_0138-Fix_Sparkle_AutoUpdate_Overwrite_Plan.md)
+
 ### 2026-09-06 — Sửa lỗi Macro Double Space & Loại bỏ tính năng Gõ nhanh
 - Khắc phục lỗi Macro bị chèn 2 dấu space do `XKeyIMController` không nuốt sự kiện Space khi `addSpaceAfterMacro` bật.
 - Loại bỏ hoàn toàn tính năng "Gõ nhanh" (Quick Telex, Quick Consonants) khỏi giao diện Settings và logic Engine cho bản build máy này.
@@ -30,6 +35,7 @@
 
 | Ngày | Tên | Trạng thái | Link |
 |------|-----|-----------|------|
+| 2026-09-07 | Fix Sparkle Auto-Update Overwrite Plan | ✅ DONE | [`20260907_0138-Fix_Sparkle_AutoUpdate_Overwrite_Plan.md`](file:///Users/hacmieu/DevOps/xkey/plans/20260907_0138-Fix_Sparkle_AutoUpdate_Overwrite_Plan.md) |
 | 2026-09-06 | Fix Macro Double Space & Remove Quick Typing Plan | ✅ DONE | [`20260906_2350-Fix_Macro_Double_Space_And_Remove_QuickTyping_Plan.md`](file:///Users/hacmieu/DevOps/xkey/plans/20260906_2350-Fix_Macro_Double_Space_And_Remove_QuickTyping_Plan.md) |
 | 2026-08-25 | English Detection Auto-Restore Plan | ✅ DONE | [`20260825_1411-English_Detection_AutoRestore_Plan.md`](file:///Users/hacmieu/DevOps/xkey/plans/20260825_1411-English_Detection_AutoRestore_Plan.md) |
 | 2026-08-20 | Tích hợp Commit 7a59d9a & Build v1.2.25 | ✅ DONE | [`20260820_0905-Cherry_Pick_7a59d9a_And_Build_v1.2.25.md`](file:///Users/hacmieu/DevOps/xkey/plans/20260820_0905-Cherry_Pick_7a59d9a_And_Build_v1.2.25.md) |

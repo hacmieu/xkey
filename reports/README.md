@@ -6,6 +6,12 @@
 
 ## Nhật ký Báo cáo (Reports)
 
+### 2026-09-07 — Báo cáo Khắc phục Sparkle Auto-Update tự động ghi đè bản Upstream
+- Điều tra hiện tượng "Gõ nhanh" vẫn còn xuất hiện: Do Sparkle Framework âm thầm tải bản upstream `20260904` và ghi đè vào `/Applications/XKey.app` ngay sau lượt build trước.
+- Đã tắt hoàn toàn `SUEnableAutomaticChecks` và `SUAutomaticallyUpdate` trong `Info.plist` và `NSUserDefaults`, xóa cache Sparkle.
+- Nâng build number lên `20260907`, biên dịch lại bản Release và cài đặt sạch. Xác nhận biểu tượng `QuickTypingSection` hoàn toàn biến mất khỏi mã nhị phân.
+- Chi tiết: xem [`reports/20260907_0138-Fix_Sparkle_AutoUpdate_Overwrite_Report.md`](file:///Users/hacmieu/DevOps/xkey/reports/20260907_0138-Fix_Sparkle_AutoUpdate_Overwrite_Report.md)
+
 ### 2026-09-06 — Báo cáo Sửa lỗi Macro Double Space & Loại bỏ tính năng Gõ nhanh
 - Phân tích nguyên nhân lỗi Macro bị chèn 2 space: `VNEngine` đã nối sẵn space vào `replacementText`, nhưng `XKeyIMController` trả về `false` làm macOS pass-through thêm phím Space gốc vào app đích. Đã sửa thành `return true`.
 - Loại bỏ hoàn toàn tính năng "Gõ nhanh" khỏi UI Sidebar và vô hiệu hóa các biến cờ Quick Telex / Quick Consonants trong Engine.
@@ -31,6 +37,7 @@
 
 | Ngày | Tên | Loại | Link |
 |------|-----|------|------|
+| 2026-09-07 | Fix Sparkle Auto-Update Overwrite | 🛠️ Sửa lỗi hệ thống | [`20260907_0138-Fix_Sparkle_AutoUpdate_Overwrite_Report.md`](file:///Users/hacmieu/DevOps/xkey/reports/20260907_0138-Fix_Sparkle_AutoUpdate_Overwrite_Report.md) |
 | 2026-09-06 | Fix Macro Double Space & Remove Quick Typing | 🛠️ Sửa lỗi & Tối ưu | [`20260906_2350-Fix_Macro_Double_Space_And_Remove_QuickTyping_Report.md`](file:///Users/hacmieu/DevOps/xkey/reports/20260906_2350-Fix_Macro_Double_Space_And_Remove_QuickTyping_Report.md) |
 | 2026-08-25 | English Detection Auto-Restore Impl | 🛠️ Sửa lỗi bộ gõ | [`20260825_1411-English_Detection_AutoRestore_Report.md`](file:///Users/hacmieu/DevOps/xkey/reports/20260825_1411-English_Detection_AutoRestore_Report.md) |
 | 2026-08-25 | English Word Detection Algorithm | 🔍 Nghiên cứu thuật toán | [`20260825_1404-English_Word_Detection_Algorithm_Research.md`](file:///Users/hacmieu/DevOps/xkey/reports/20260825_1404-English_Word_Detection_Algorithm_Research.md) |

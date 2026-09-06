@@ -67,7 +67,9 @@
 	<key>SUFeedURL</key>
 	<string>https://xmannv.github.io/xkey/appcast.xml</string>
 	<key>SUEnableAutomaticChecks</key>
-	<true/>
+	<false/>
+	<key>SUAutomaticallyUpdate</key>
+	<false/>
 	<key>SUScheduledCheckInterval</key>
 	<integer>86400</integer>
 	<key>SUPublicEDKey</key>
